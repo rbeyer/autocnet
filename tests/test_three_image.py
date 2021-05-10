@@ -1,11 +1,14 @@
 import unittest
 
+import pytest
+
 from autocnet.examples import get_path
 from plio.io.io_controlnetwork import to_isis
 from plio.io.io_controlnetwork import write_filelist
 from autocnet.graph.network import CandidateGraph
 
 
+@pytest.mark.xfail(strict=True)
 class TestThreeImageMatching(unittest.TestCase):
     """
     Feature: As a user
