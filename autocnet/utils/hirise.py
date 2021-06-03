@@ -6,13 +6,12 @@ import geopandas as gpd
 import kalasiris as isis
 from subprocess import CalledProcessError
 
-import plio
 from plio.io.io_gdal import GeoDataset
 
 from shapely import wkt
 import numpy as np
 import pvl
-from shapely.geometry import Point, MultiPolygon
+
 
 def segment_hirise(directory, offset=300):
     images = glob(os.path.join(directory, "*RED*.stitched.norm.cub"))
@@ -58,7 +57,12 @@ def load_segments(directory):
 
 def ingest_hirise(directory):
 
-    l = glob(os.path.join(directory, "*RED*.IMG"))
+    # This function is very brittle attempting to guess filenames in the
+    # provided directory.  Much better to have this take a list of Path
+    # objects and operate on them, and leave it up to the user (or some
+    # convenience function) to figure out how to create that list.
+    l = glob(os.path.join(directory, "*RED*.IMG")) + \
+        glob(os.path.join(directory, "*RED*.img"))
     l = [os.path.splitext(i)[0] for i in l]
     print(l)
     cube_name = "_".join(os.path.splitext(os.path.basename(l[0]))[0].split("_")[:-2])
@@ -109,7 +113,7 @@ def ingest_hirise(directory):
                 """
             )
         )
-        return
+    return
 
 
 
