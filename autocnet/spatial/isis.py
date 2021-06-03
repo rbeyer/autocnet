@@ -1,10 +1,10 @@
 import pvl
-from pysis import isis
 from warnings import warn
-from pysis.exceptions import ProcessError
 from numbers import Number
 import numpy as np
-import tempfile
+from subprocess import CalledProcessError
+
+import kalasiris as isis
 
 
 def point_info(cube_path, x, y, point_type, allow_outside=False):
@@ -54,49 +54,78 @@ def point_info(cube_path, x, y, point_type, allow_outside=False):
       for x,y in zip(x,y):
         try:
           if point_type.lower() == "ground":
-            pvlres.append(isis.mappt(from_=cube_path, longitude=x, latitude=y, allowoutside=allow_outside, coordsys="UNIVERSAL", type_=point_type))
+            pvlres.append(
+                isis.mappt(
+                    cube_path,
+                    longitude=x,
+                    latitude=y,
+                    allowoutside=allow_outside,
+                    coordsys="UNIVERSAL",
+                    type=point_type
+                ).stdout
+            )
           elif point_type.lower() == "image":
-            pvlres.append(isis.mappt(from_=cube_path, sample=x, line=y, allowoutside=allow_outside, type_=point_type))
-        except ProcessError as e:
-          print(f"CAMPT call failed, image: {cube_path}\n{e.stderr}")
+            pvlres.append(
+                isis.mappt(
+                    cube_path,
+                    sample=x,
+                    line=y,
+                    allowoutside=allow_outside,
+                    type=point_type
+                    ).stdout
+            )
+        except CalledProcessError as e:
+          print(f"MAPPT call failed, image: {cube_path}\n{e.stderr}")
           return
       dictres = [dict(pvl.loads(res)["Results"]) for res  in pvlres]
       if len(dictres) == 1:
         pvlres = dictres[0]
 
     else:
-      with tempfile.NamedTemporaryFile("w+") as f:
-         # ISIS's campt wants points in a file, so write to a temp file
-         if point_type == "ground":
+        if point_type == "ground":
             # campt uses lat, lon for ground but sample, line for image.
             # So swap x,y for ground-to-image calls
-            x,y = y,x
+            x, y = y, x
 
+        # ISIS's campt wants points in a file, so write to a temp file
+        with isis.fromlist.temp(
+                [f"{xval}, {yval}" for xval, yval in zip(x, y)]
+        ) as f:
+            try:
+                cp = isis.campt(
+                    cube_path,
+                    coordlist=f,
+                    allowoutside=allow_outside,
+                    usecoordlist=True,
+                    coordtype=point_type
+                )
+            except CalledProcessError as e:
+                warn(f"CAMPT call failed, image: {cube_path}\n{e.stderr}")
+                return
 
-         f.write("\n".join(["{}, {}".format(xval,yval) for xval,yval in zip(x, y)]))
-         f.flush()
-         try:
-            pvlres = isis.campt(from_=cube_path, coordlist=f.name, allowoutside=allow_outside, usecoordlist=True, coordtype=point_type)
-         except ProcessError as e:
-            warn(f"CAMPT call failed, image: {cube_path}\n{e.stderr}")
-            return
-
-         pvlres = pvl.loads(pvlres)
-         dictres = []
-         if len(x) > 1 and len(y) > 1:
+        pvlres = pvl.loads(cp.stdout)
+        dictres = []
+        if len(x) > 1 and len(y) > 1:
             for r in pvlres:
                 if r['GroundPoint']['Error'] is not None:
-                    raise ProcessError(returncode=1, cmd=['pysis.campt()'], stdout=r, stderr=r['GroundPoint']['Error'])
-                    return
+                    raise CalledProcessError(
+                        returncode=1,
+                        cmd=cp.cmd,
+                        stdout=r,
+                        stderr=r['GroundPoint']['Error'])
                 else:
                     # convert all pixels to PLIO pixels from ISIS
                     r[1]["Sample"] -= .5
                     r[1]["Line"] -= .5
                     dictres.append(dict(r[1]))
-         else:
+        else:
             if pvlres['GroundPoint']['Error'] is not None:
-                raise ProcessError(returncode=1, cmd=['pysis.campt()'], stdout=pvlres, stderr=pvlres['GroundPoint']['Error'])
-                return
+                raise CalledProcessError(
+                    returncode=1,
+                    cmd=cp.cmd,
+                    stdout=pvlres,
+                    stderr=pvlres['GroundPoint']['Error']
+                )
             else:
                 pvlres["GroundPoint"]["Sample"] -= .5
                 pvlres["GroundPoint"]["Line"] -= .5
@@ -117,10 +146,7 @@ def image_to_ground(cube_path, sample, line, lattype="PlanetocentricLatitude", l
            1-D array of longitudes or single floating point longitude
 
     """
-    try:
-        res = point_info(cube_path, sample, line, "image")
-    except ProcessError as e:
-        raise ProcessError(returncode=e.returncode, cmd=e.cmd, stdout=e.stdout, stderr=e.stderr)
+    res = point_info(cube_path, sample, line, "image")
 
     try:
         if isinstance(res, list):
@@ -149,10 +175,7 @@ def ground_to_image(cube_path, lon, lat):
               array of samples or single dloating point sample
 
     """
-    try:
-        res = point_info(cube_path, lon, lat, "ground")
-    except ProcessError as e:
-        raise ProcessError(returncode=e.returncode, cmd=e.cmd, stdout=e.stdout, stderr=e.stderr)
+    res = point_info(cube_path, lon, lat, "ground")
 
     try:
         if isinstance(res, list):
