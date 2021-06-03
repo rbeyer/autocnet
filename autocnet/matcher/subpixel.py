@@ -4,6 +4,8 @@ import time
 import numpy as np
 import warnings
 
+from subprocess import CalledProcessError
+
 import numbers
 
 import sys
@@ -18,7 +20,6 @@ from scipy import fftpack
 from matplotlib import pyplot as plt
 
 from plio.io.io_gdal import GeoDataset
-from pysis.exceptions import ProcessError
 
 import pvl
 
@@ -890,7 +891,7 @@ def geom_match_simple(base_cube,
         try:
             lat, lon = spatial.isis.image_to_ground(base_cube.file_name, x, y)
             dst_corners.append(spatial.isis.ground_to_image(input_cube.file_name, lon, lat)[::-1])
-        except ProcessError as e:
+        except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {input_cube.base_name}')
                 return None, None, None, None, None
@@ -1086,7 +1087,7 @@ def geom_match_classic(base_cube,
         try:
             lat, lon = spatial.isis.image_to_ground(base_cube.file_name, x, y)
             dst_corners.append(spatial.isis.ground_to_image(input_cube.file_name, lon, lat)[::-1])
-        except ProcessError as e:
+        except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {input_cube.base_name}')
                 return None, None, None, None, None
@@ -1270,7 +1271,7 @@ def geom_match(destination_cube,
     try:
         mlat, mlon = spatial.isis.image_to_ground(destination_cube.file_name, bcenter_x, bcenter_y)
         center_y, center_x = spatial.isis.ground_to_image(source_cube.file_name, mlon, mlat)
-    except ProcessError as e:
+    except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest center located at ({mlon}, {mlat}) does not project to image {source_cube.base_name}')
                 print('This should only appear when propagating ground points')
@@ -1283,7 +1284,7 @@ def geom_match(destination_cube,
         try:
             lat, lon = spatial.isis.image_to_ground(destination_cube.file_name, x, y)
             source_corners.append(spatial.isis.ground_to_image(source_cube.file_name, lon, lat)[::-1])
-        except ProcessError as e:
+        except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {source_cube.base_name}')
                 return None, None, None, None, None
