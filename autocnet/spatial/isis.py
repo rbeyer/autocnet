@@ -106,25 +106,26 @@ def point_info(cube_path, x, y, point_type, allow_outside=False):
         pvlres = pvl.loads(cp.stdout)
         dictres = []
         if len(x) > 1 and len(y) > 1:
-            for r in pvlres:
-                if r['GroundPoint']['Error'] is not None:
+            for r in pvlres.getall("GroundPoint"):
+                if r['Error'] is not None:
                     raise CalledProcessError(
                         returncode=1,
-                        cmd=cp.cmd,
+                        cmd=cp.args,
                         stdout=r,
-                        stderr=r['GroundPoint']['Error'])
+                        stderr=r['Error'])
                 else:
                     # convert all pixels to PLIO pixels from ISIS
-                    r[1]["Sample"] -= .5
-                    r[1]["Line"] -= .5
-                    dictres.append(dict(r[1]))
+                    r["Sample"] -= .5
+                    r["Line"] -= .5
+                    dictres.append(dict(r))
         else:
             if pvlres['GroundPoint']['Error'] is not None:
+                # This probably isn't the right exception to call.
                 raise CalledProcessError(
                     returncode=1,
-                    cmd=cp.cmd,
-                    stdout=pvlres,
-                    stderr=pvlres['GroundPoint']['Error']
+                    cmd=cp.args,
+                    # stdout=pvlres,
+                    # stderr=pvlres['GroundPoint']['Error']
                 )
             else:
                 pvlres["GroundPoint"]["Sample"] -= .5
