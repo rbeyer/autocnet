@@ -186,7 +186,7 @@ def place_points_in_overlap(overlap,
             # reference against which all other images are registered.
             if cam_type == "isis":
                 try:
-                    line, sample = isis.ground_to_image(node["image_path"], lon, lat)
+                    sample, line = isis.ground_to_image(node["image_path"], lon, lat)
                 except CalledProcessError as e:
                     if 'Requested position does not project in camera model' in e.stderr:
                         print(f'point ({lon}, {lat}) does not project to reference image {node["image_path"]}')
@@ -292,7 +292,7 @@ def place_points_in_overlap(overlap,
                 sample, line = image_coord.samp, image_coord.line
             if cam_type == "isis":
                 try:
-                    line, sample = isis.ground_to_image(node["image_path"], updated_lon, updated_lat)
+                    sample, line = isis.ground_to_image(node["image_path"], updated_lon, updated_lat)
                 except CalledProcessError as e:
                     if 'Requested position does not project in camera model' in e.stderr:
                         print(f'interesting point ({updated_lon},{updated_lat}) does not project to image {node["image_path"]}')
@@ -400,7 +400,7 @@ def place_points_in_image(image,
         node = nodes[0]
         if cam_type == "isis":
             try:
-                line, sample = isis.ground_to_image(node["image_path"], lon, lat)
+                sample, line = isis.ground_to_image(node["image_path"], lon, lat)
             except CalledProcessError as e:
                 if 'Requested position does not project in camera model' in e.stderr:
                     print(f'point ({lon}, {lat}) does not project to reference image {node["image_path"]}')
@@ -498,7 +498,7 @@ def place_points_in_image(image,
                 sample, line = image_coord.samp, image_coord.line
             if cam_type == "isis":
                 try:
-                    line, sample = isis.ground_to_image(node["image_path"], updated_lon, updated_lat)
+                    sample, line = isis.ground_to_image(node["image_path"], updated_lon, updated_lat)
                 except CalledProcessError as e:
                     if 'Requested position does not project in camera model' in e.stderr:
                         print(f'interesting point ({lon},{lat}) does not project to image {node["image_path"]}')
@@ -543,7 +543,7 @@ def add_measures_to_point(pointid, cam_type='isis', ncg=None, Session=None):
             
             if cam_type == "isis":
                 try:
-                    line, sample = isis.ground_to_image(image.path, point_lon, point_lat)
+                    sample, line = isis.ground_to_image(image.path, point_lon, point_lat)
                 except CalledProcessError as e:
                     if 'Requested position does not project in camera model' in e.stderr:
                         print(f'interesting point ({point_lon},{point_lat}) does not project to image {image.name}')

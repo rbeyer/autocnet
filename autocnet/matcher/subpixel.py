@@ -889,8 +889,9 @@ def geom_match_simple(base_cube,
     dst_corners = []
     for x,y in base_corners:
         try:
-            lat, lon = spatial.isis.image_to_ground(base_cube.file_name, x, y)
-            dst_corners.append(spatial.isis.ground_to_image(input_cube.file_name, lon, lat)[::-1])
+            lon, lat = spatial.isis.image_to_ground(base_cube.file_name, x, y)
+            sample, line = spatial.isis.ground_to_image(input_cube.file_name, lon, lat)
+            dst_corners.append((line, sample))
         except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {input_cube.base_name}')
@@ -1074,8 +1075,8 @@ def geom_match_classic(base_cube,
         raise Exception(f"Window: {base_starty} < 0, center: {bcenter_x},{bcenter_y}")
 
     # specifically not putting this in a try/except, this should never fail
-    mlat, mlon = spatial.isis.image_to_ground(base_cube.file_name, bcenter_x, bcenter_y)
-    center_x, center_y = spatial.isis.ground_to_image(input_cube.file_name, mlon, mlat)[::-1]
+    mlon, mlat = spatial.isis.image_to_ground(base_cube.file_name, bcenter_x, bcenter_y)
+    center_x, center_y = spatial.isis.ground_to_image(input_cube.file_name, mlon, mlat)
 
     base_corners = [(base_startx,base_starty),
                     (base_startx,base_stopy),
@@ -1085,8 +1086,9 @@ def geom_match_classic(base_cube,
     dst_corners = []
     for x,y in base_corners:
         try:
-            lat, lon = spatial.isis.image_to_ground(base_cube.file_name, x, y)
-            dst_corners.append(spatial.isis.ground_to_image(input_cube.file_name, lon, lat)[::-1])
+            lon, lat = spatial.isis.image_to_ground(base_cube.file_name, x, y)
+            sample, line = spatial.isis.ground_to_image(input_cube.file_name, lon, lat)
+            dst_corners.append((line, sample))
         except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {input_cube.base_name}')
@@ -1269,8 +1271,8 @@ def geom_match(destination_cube,
     # 07/28 - putting it in a try/except because of how we ground points
     # Transform from the destination center to the source_cube center
     try:
-        mlat, mlon = spatial.isis.image_to_ground(destination_cube.file_name, bcenter_x, bcenter_y)
-        center_y, center_x = spatial.isis.ground_to_image(source_cube.file_name, mlon, mlat)
+        mlon, mlat = spatial.isis.image_to_ground(destination_cube.file_name, bcenter_x, bcenter_y)
+        center_x, center_y = spatial.isis.ground_to_image(source_cube.file_name, mlon, mlat)
     except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest center located at ({mlon}, {mlat}) does not project to image {source_cube.base_name}')
@@ -1282,8 +1284,9 @@ def geom_match(destination_cube,
     source_corners = []
     for x,y in destination_corners:
         try:
-            lat, lon = spatial.isis.image_to_ground(destination_cube.file_name, x, y)
-            source_corners.append(spatial.isis.ground_to_image(source_cube.file_name, lon, lat)[::-1])
+            lon, lat = spatial.isis.image_to_ground(destination_cube.file_name, x, y)
+            sample, line = spatial.isis.ground_to_image(source_cube.file_name, lon, lat)
+            source_corners.append((line, sample))
         except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {source_cube.base_name}')
@@ -1680,8 +1683,8 @@ def register_to_base(pointid,
             print('unable to find point in ground image')
             # Need to set the point to False
             return
-        bline = bpoint[0].get('Line')
-        bsample = bpoint[0].get('Sample')
+        bline = bpoint.get('Line')
+        bsample = bpoint.get('Sample')
 
         # Setup a cache so that we can get the file handles one time instead of 
         # once per measure in the measures list.

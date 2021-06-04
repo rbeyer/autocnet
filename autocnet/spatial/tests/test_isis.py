@@ -19,6 +19,39 @@ import kalasiris as isis
 
 from autocnet.spatial import isis as si
 
+class TestErrors(unittest.TestCase):
+
+    def test_point_info(self):
+        self.assertRaises(
+            ValueError, si.point_info, "dummy.cub", 10, 10, "bogus"
+        )
+        self.assertRaises(
+            IndexError,
+            si.point_info,
+            "dummy.cub",
+            [10, 20, 30],
+            [10, 20],
+            "image"
+        )
+        self.assertRaises(
+            TypeError, si.point_info, "dummy.cub", {10, 20}, {10, 20}, "image"
+        )
+        self.assertRaises(
+            IndexError,
+            si.point_info,
+            "dummy.cub",
+            np.array([[1, 2], [3, 4]]),
+            np.array([1, 2, 3, 4]),
+            "image"
+        )
+        self.assertRaises(
+            IndexError,
+            si.point_info,
+            "dummy.cub",
+            np.array([1, 2, 3, 4, 5]),
+            np.array([1, 2, 3, 4]),
+            "image"
+        )
 
 class TestISIS(unittest.TestCase):
 
@@ -48,6 +81,10 @@ class TestISIS(unittest.TestCase):
             Path("print.prt").unlink()
 
     def test_point_info(self):
+        self.assertRaises(
+            ValueError, si.point_info, self.cube, -10, -10, "image"
+        )
+
         d = si.point_info(self.cube, 10, 10, "image")
         self.assertEqual(10, d["Sample"])
         self.assertEqual(10, d["Line"])
@@ -73,34 +110,34 @@ class TestISIS(unittest.TestCase):
 
         d4 = si.point_info(self.map, 10, 10, "image")
         d5 = si.point_info(self.map, [10, x_sample], [10, y_line], "image")
-        self.assertEqual(d4, [d5[0]])
+        self.assertEqual(d4, d5[0])
 
-        d6 = si.point_info(self.map, x_lon, y_lat, "ground")[0]
+        d6 = si.point_info(self.map, x_lon, y_lat, "ground")
         self.assertEqual(961.20490394075, d6["Sample"])
         self.assertEqual(3959.4515093358, d6["Line"])
 
     def test_image_to_ground(self):
-        lat, lon = si.image_to_ground(self.cube, 20, 20)
+        lon, lat = si.image_to_ground(self.cube, 20, 20)
         self.assertEqual(274.14948072713, lon)
         self.assertEqual(28.537396673529, lat)
 
-        lats, lons = si.image_to_ground(
+        lons, lats = si.image_to_ground(
             self.map, np.array([10, 20]), np.array([10, 20])
         )
-        npt.assert_allclose(np.array([274.13903475, 274.13914465]), lons)
-        npt.assert_allclose(np.array([28.57550764, 28.57541113]), lats)
+        npt.assert_allclose(np.array([274.13902925, 274.13913915]), lons)
+        npt.assert_allclose(np.array([28.57551247, 28.57541596]), lats)
 
     def test_ground_to_image(self):
-        line, sample = si.ground_to_image(
+        sample, line = si.ground_to_image(
             self.cube, 274.14948072713, 28.537396673529
         )
-        self.assertEqual(20.004109124452, line)
         self.assertEqual(20.001087366213, sample)
+        self.assertEqual(20.004109124452, line)
 
-        lines, samples = si.ground_to_image(
+        samples, lines = si.ground_to_image(
             self.map,
             np.array([274.13903475, 274.14948072713]),
             np.array([28.57550764, 28.57541113])
         )
-        npt.assert_allclose(np.array([10.49999466, 20.50009032]), lines)
         npt.assert_allclose(np.array([10.5001324, 961.03569217]), samples)
+        npt.assert_allclose(np.array([10.49999466, 20.50009032]), lines)
