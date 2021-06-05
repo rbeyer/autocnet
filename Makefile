@@ -59,7 +59,7 @@ clean-test: ## remove test and coverage artifacts
 lint: ## check style with flake8
 	flake8 --max-complexity 10 --ignore E203,E501,W503 autocnet tests
 
-test: test-resources ## run tests quickly with the default Python
+test: ## run tests quickly with the default Python
 	pytest autocnet
 
 test-resources: ## Download what we need for testing
