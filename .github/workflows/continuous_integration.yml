@@ -74,7 +74,7 @@ jobs:
           environment-file: environment.yml
           use-only-tar-bz2: true
           python-version: ${{ matrix.python-version }}
-     - name: config ISIS vars
+      - name: config ISIS vars
         run: |
           conda env config vars set ISISROOT=${{ env.isis-root }}
           conda env config vars set ISISDATA=$GITHUB_WORKSPACE/${{ env.isis-data }}
