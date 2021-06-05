@@ -46,8 +46,8 @@ jobs:
         run: |
           mkdir $GITHUB_WORKSPACE/test-resources/
           mkdir $GITHUB_WORKSPACE/${{ env.isis-data }}
-       - name: Download IMG
-          run: curl "https://hirise-pds.lpl.arizona.edu/PDS/EDR/PSP/ORB_010500_010599/PSP_010502_2090/PSP_010502_2090_RED5_0.IMG" -o $GITHUB_WORKSPACE/test-resources/PSP_010502_2090_RED5_0.img
+      - name: Download IMG
+        run: curl "https://hirise-pds.lpl.arizona.edu/PDS/EDR/PSP/ORB_010500_010599/PSP_010502_2090/PSP_010502_2090_RED5_0.IMG" -o $GITHUB_WORKSPACE/test-resources/PSP_010502_2090_RED5_0.img
       - name: Exit isis env
         run: conda deactivate
       - name: Checkout Code
