@@ -890,8 +890,9 @@ def geom_match_simple(base_cube,
     for x,y in base_corners:
         try:
             lon, lat = spatial.isis.image_to_ground(base_cube.file_name, x, y)
-            sample, line = spatial.isis.ground_to_image(input_cube.file_name, lon, lat)
-            dst_corners.append((line, sample))
+            dst_corners.append(
+                spatial.isis.ground_to_image(input_cube.file_name, lon, lat)
+            )
         except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {input_cube.base_name}')
@@ -1087,8 +1088,9 @@ def geom_match_classic(base_cube,
     for x,y in base_corners:
         try:
             lon, lat = spatial.isis.image_to_ground(base_cube.file_name, x, y)
-            sample, line = spatial.isis.ground_to_image(input_cube.file_name, lon, lat)
-            dst_corners.append((line, sample))
+            dst_corners.append(
+                spatial.isis.ground_to_image(input_cube.file_name, lon, lat)
+            )
         except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {input_cube.base_name}')
@@ -1285,8 +1287,9 @@ def geom_match(destination_cube,
     for x,y in destination_corners:
         try:
             lon, lat = spatial.isis.image_to_ground(destination_cube.file_name, x, y)
-            sample, line = spatial.isis.ground_to_image(source_cube.file_name, lon, lat)
-            source_corners.append((line, sample))
+            source_corners.append(
+                spatial.isis.ground_to_image(source_cube.file_name, lon, lat)
+            )
         except CalledProcessError as e:
             if 'Requested position does not project in camera model' in e.stderr:
                 print(f'Skip geom_match; Region of interest corner located at ({lon}, {lat}) does not project to image {source_cube.base_name}')
