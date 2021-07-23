@@ -118,14 +118,22 @@ class TestISIS(unittest.TestCase):
 
     def test_image_to_ground(self):
         lon, lat = si.image_to_ground(self.cube, 20, 20)
-        self.assertEqual(274.14948072713, lon)
-        self.assertEqual(28.537396673529, lat)
+        x = 274.14948072713
+        y = 28.537396673529
+        self.assertEqual(x, lon)
+        self.assertEqual(y, lat)
+
+        lon, lat = si.image_to_ground(self.map, 20, 20)
+        x = 274.13913915
+        y = 28.57541596
+        self.assertEqual(x, lon)
+        self.assertEqual(y, lat)
 
         lons, lats = si.image_to_ground(
             self.map, np.array([10, 20]), np.array([10, 20])
         )
-        npt.assert_allclose(np.array([274.13902925, 274.13913915]), lons)
-        npt.assert_allclose(np.array([28.57551247, 28.57541596]), lats)
+        npt.assert_allclose(np.array([274.13902925, x]), lons)
+        npt.assert_allclose(np.array([28.57551247, y]), lats)
 
     def test_ground_to_image(self):
         sample, line = si.ground_to_image(
