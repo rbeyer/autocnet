@@ -123,6 +123,12 @@ class TestISIS(unittest.TestCase):
         self.assertEqual(x, lon)
         self.assertEqual(y, lat)
 
+        lons, lats = si.image_to_ground(
+            self.cube, np.array([10, 20]), np.array([10, 20])
+        )
+        npt.assert_allclose(np.array([274.14961074425, x]), lons)
+        npt.assert_allclose(np.array([28.537307587569, y]), lats)
+
         lon, lat = si.image_to_ground(self.map, 20, 20)
         x = 274.13913915
         y = 28.57541596
